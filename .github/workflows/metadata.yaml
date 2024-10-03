@@ -33,10 +33,19 @@ jobs:
       REGISTRY_PW: ${{ secrets.REGISTRY_PW  }}
       NAME: metadata
       DIRECTORY: metadata
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
 
     steps:
       # Checks-out your repository under $GITHUB_WORKSPACE.
       - uses: actions/checkout@v3
+
+      # Installs the Azure CLI.
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
 
       #
       # Builds the Docker image.
@@ -49,16 +58,6 @@ jobs:
       #
       - name: Publish
         run: ./scripts/cd/push-image.sh
-
-      #
-      # Installs Kubectl and connects it to the cluster.
-      #
-      # https://github.com/marketplace/actions/kubernetes-cli-kubectl
-      #
-      - uses: tale/kubectl-action@v1
-        with:
-          base64-kube-config: ${{ secrets.KUBE_CONFIG }}
-          kubectl-version: v1.24.2
 
       #
       # Expands the configuration template and deploys the microservice.
