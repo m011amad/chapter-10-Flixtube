@@ -77,6 +77,7 @@ jobs:
         with:
           resource-group: "sit722week83"
           cluster-name: "sit722week83"
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       #
       # Expands the configuration template and deploys the microservice.
