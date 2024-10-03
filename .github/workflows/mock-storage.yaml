@@ -1,4 +1,4 @@
-# 
+#
 # GitHub Actions workflow.
 #
 # Automatically deploys the Node.js microservice to Kubernetes on push to the main branch.
@@ -11,7 +11,7 @@ on:
   #
   # Deploys the microservice on push to the specified subdirectory in the main branch of this code repository.
   #
-  push: 
+  push:
     branches:
       - main
     paths:
@@ -20,25 +20,40 @@ on:
   #
   # Allows deployment to be invoked manually through the GitHub Actions user interface.
   #
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
-
   deploy:
     runs-on: ubuntu-latest
-    
+
     env:
       VERSION: ${{ github.sha }}
       CONTAINER_REGISTRY: ${{ secrets.CONTAINER_REGISTRY }}
       REGISTRY_UN: ${{ secrets.REGISTRY_UN }}
       REGISTRY_PW: ${{ secrets.REGISTRY_PW  }}
+      ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+      ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+      ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+      ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
       NAME: mock-storage
       DIRECTORY: mock-storage
 
     steps:
-      
       # Checks-out your repository under $GITHUB_WORKSPACE.
       - uses: actions/checkout@v3
+
+        # Installs the Azure CLI.
+      - uses: azure/login@v1
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: Set up kubectl
+        uses: azure/setup-kubectl@v1
+
+      - uses: azure/aks-set-context@v3
+        with:
+          resource-group: "sit722week83"
+          cluster-name: "sit722week83"
 
       #
       # Builds the Docker image.
@@ -52,16 +67,6 @@ jobs:
       - name: Publish
         run: ./scripts/cd/push-image.sh
 
-      #
-      # Installs Kubectl and connects it to the cluster.
-      #
-      # https://github.com/marketplace/actions/kubernetes-cli-kubectl
-      #
-      - uses: tale/kubectl-action@v1
-        with:
-          base64-kube-config: ${{ secrets.KUBE_CONFIG }}
-          kubectl-version: v1.24.2
-      
       #
       # Expands the configuration template and deploys the microservice.
       #
