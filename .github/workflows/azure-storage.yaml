@@ -60,8 +60,8 @@ jobs:
 
       - uses: azure/aks-set-context@v3
         with:
-          resource-group: "sit722week83"
-          cluster-name: "sit722week83"
+          resource-group: "amirflixtube"
+          cluster-name: "amirflixtube"
       #
       # Expands the configuration template and deploys the microservice.
       #
