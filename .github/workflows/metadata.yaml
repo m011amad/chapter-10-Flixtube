@@ -8,8 +8,10 @@
 name: Deploy metadata
 
 on:
-  # Deploys the microservice on merge to the main branch of this code repository in the specified subdirectory.
-  pull_request:
+  #
+  # Deploys the microservice on push to the specified subdirectory in the main branch of this code repository.
+  #
+  push:
     branches:
       - main
     paths:
@@ -36,23 +38,6 @@ jobs:
       # Checks-out your repository under $GITHUB_WORKSPACE.
       - uses: actions/checkout@v3
 
-      # Sets up Node.js.
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: "20.x"
-          cache: "npm"
-
-      # Installs the Azure CLI.
-      - name: Install Node.js dependencies
-        working-directory: ${{ env.DIRECTORY }}
-        run: npm ci
-
-      # Runs the tests.
-      - name: Run tests
-        working-directory: ${{ env.DIRECTORY }}
-        run: npm test
-
       #
       # Builds the Docker image.
       #
@@ -65,18 +50,15 @@ jobs:
       - name: Publish
         run: ./scripts/cd/push-image.sh
 
-      # Installs the Azure CLI.
-      - uses: azure/login@v1
+      #
+      # Installs Kubectl and connects it to the cluster.
+      #
+      # https://github.com/marketplace/actions/kubernetes-cli-kubectl
+      #
+      - uses: tale/kubectl-action@v1
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
-
-      - name: Set up kubectl
-        uses: azure/setup-kubectl@v1
-
-      - uses: azure/aks-set-context@v3
-        with:
-          resource-group: "sit722week83"
-          cluster-name: "sit722week83"
+          base64-kube-config: ${{ secrets.KUBE_CONFIG }}
+          kubectl-version: v1.24.2
 
       #
       # Expands the configuration template and deploys the microservice.
